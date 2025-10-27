@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png" type="image/png">
+<title>Valakas Tracker</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    text-align: center;
+    background: radial-gradient(circle at top, #1b1b1b, #0a0a0a);
+    color: #eee;
+    margin: 0; padding: 30px;
+  }
+  h1 {
+    color: #ff4d4d;
+    text-shadow: 0 0 10px #ff0000aa;
+  }
+  input, button {
+    padding: 10px;
+    margin: 10px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+  }
+  button {
+    background: #ff4d4d;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover {
+    background: #ff6666;
+  }
+  #timer {
+    font-size: 2em;
+    margin-top: 30px;
+  }
+  .alert {
+    color: #ffcc00;
+    font-weight: bold;
+  }
+  footer {
+    margin-top: 60px;
+    font-size: 0.9em;
+    color: #aaa;
+  }
+</style>
+</head>
+<body>
+  <h1>🔥 Valakas Respawn Tracker 🔥</h1>
+
+  <label>Hora da morte do Valakas:</label><br>
+  <input type="datetime-local" id="deathTime">
+  <button onclick="startTimer()">Iniciar Contagem</button>
+  <button onclick="resetTimer()">Limpar</button>
+
+  <div id="timer"></div>
+  <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+  <footer>
+    Feito por EverusGmr ⚔️ | Funciona offline | <a href="#" id="shareLink" style="color:#ff4d4d;">Compartilhar link</a>
+  </footer>
+
+<script>
+let interval;
+const alarm = document.getElementById("alarmSound");
+
+window.onload = function() {
+  const saved = localStorage.getItem("valakasDeathTime");
+  if (saved) {
+    document.getElementById("deathTime").value = saved;
+    startTimer();
+  }
+};
+
+function startTimer() {
+  clearInterval(interval);
+  const deathInput = document.getElementById("deathTime").value;
+  if (!deathInput) return alert("Insira o horário da morte do Valakas!");
+
+  localStorage.setItem("valakasDeathTime", deathInput);
+
+  const deathTime = new Date(deathInput);
+  const spawnMin = new Date(deathTime.getTime() + 11 * 60 * 60 * 1000);
+  const spawnMax = new Date(deathTime.getTime() + 17 * 60 * 60 * 1000);
+
+  interval = setInterval(() => {
+    const now = new Date();
+    const diff = spawnMin - now;
+
+    if (diff <= 0) {
+      document.getElementById("timer").innerHTML =
+        `🐉 <b>Valakas pode nascer a qualquer momento!</b><br><span class="alert">Janela até ${spawnMax.toLocaleTimeString()}</span>`;
+
+      if (alarm.paused) alarm.play();
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById("timer").innerHTML =
+      `⏳ Próximo spawn em: ${hours}h ${mins}m ${secs}s<br>` +
+      `(Janela: ${spawnMin.toLocaleTimeString()} — ${spawnMax.toLocaleTimeString()})`;
+
+    if (diff < 15 * 60 * 1000 && alarm.paused) alarm.play();
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  localStorage.removeItem("valakasDeathTime");
+  document.getElementById("timer").innerHTML = "";
+  document.getElementById("deathTime").value = "";
+  alarm.pause();
+  alarm.currentTime = 0;
+}
+
+document.getElementById("shareLink").onclick = function(e) {
+  e.preventDefault();
+  const url = window.location.href.split("?")[0];
+  navigator.clipboard.writeText(url);
+  alert("Link copiado! Você pode enviar este link para seus amigos.");
+};
+</script>
+</body>
+</html>
