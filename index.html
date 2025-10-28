@@ -4,83 +4,30 @@
   <meta charset="UTF-8">
   <title>Status Valakas</title>
   <style>
-  body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    text-align: center;
-    background: url('valakas.png') no-repeat center center fixed;
-    background-size: cover;
-    color: #eee;
-    margin: 0; padding: 30px;
-  }
-  h1 {
-    color: #ff4d4d;
-    text-shadow: 0 0 15px #ff0000aa;
-    background: rgba(0,0,0,0.5);
-    display: inline-block;
-    padding: 10px 20px;
-    border-radius: 12px;
-  }
-  #timer, label, footer, input, button {
-    background: rgba(0,0,0,0.5);
-    border-radius: 10px;
-  }
-  input, button {
-    padding: 10px;
-    margin: 10px;
-    border: none;
-    font-size: 1em;
-    color: #fff;
-  }
-  button {
-    background: #ff4d4d;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  button:hover {
-    background: #ff6666;
-  }
-  #muteBtn {
-    background: #333;
-    color: #eee;
-    margin-left: 10px;
-  }
-  #muteBtn.muted {
-    background: #555;
-    color: #ffcc00;
-  }
-  #timer {
-    font-size: 2em;
-    margin-top: 30px;
-    padding: 15px;
-  }
-  .alert {
-    color: #ffcc00;
-    font-weight: bold;
-  }
-  footer {
-    margin-top: 60px;
-    font-size: 0.9em;
-    color: #ccc;
-    background: rgba(0,0,0,0.4);
-    display: inline-block;
-    padding: 5px 15px;
-    border-radius: 10px;
-  }
-</style>
-
+    body {
+      background: url('valakas.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .timer { font-size: 2em; margin: 20px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
   <script type="module">
     // Import Firebase SDKs (compatíveis com 2025)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
-  authDomain: "valakas-tracker.firebaseapp.com",
-  projectId: "valakas-tracker",
-  storageBucket: "valakas-tracker.firebasestorage.app",
-  messagingSenderId: "1073176685323",
-  appId: "1:1073176685323:web:621c3fb91d03053cad900e"
-};
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SUA_APP_ID"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
