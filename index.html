@@ -24,16 +24,15 @@
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
-  authDomain: "valakas-tracker.firebaseapp.com",
-  projectId: "valakas-tracker",
-  storageBucket: "valakas-tracker.firebasestorage.app",
-  messagingSenderId: "1073176685323",
-  appId: "1:1073176685323:web:621c3fb91d03053cad900e"
-};
+      apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
+      authDomain: "valakas-tracker.firebaseapp.com",
+      projectId: "valakas-tracker",
+      storageBucket: "valakas-tracker.firebasestorage.app",
+      messagingSenderId: "1073176685323",
+      appId: "1:1073176685323:web:621c3fb91d03053cad900e"
+    };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const bossDoc = doc(db, "bosses", "valakas");
 
@@ -42,7 +41,7 @@ const app = initializeApp(firebaseConfig);
     // ================================
     // 1 = ativo (bloqueia novos registros até o próximo respawn)
     // 0 = desativado (permite registrar sempre)
-    const antiSpamMode = 0;
+    const antiSpamMode = 1;
 
     // ================================
     // TEMPO DE RESPAWN DO VALAKAS
