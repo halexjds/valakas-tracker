@@ -5,7 +5,7 @@
   <title>Status Valakas</title>
   <style>
     body {
-      background: url('valakas.png') no-repeat center center fixed;
+      background: url('valakas-bg.jpg') no-repeat center center fixed;
       background-size: cover;
       font-family: Arial, sans-serif;
       color: #fff;
@@ -13,37 +13,48 @@
       padding-top: 50px;
     }
     .timer { font-size: 2em; margin: 20px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
+    .status { margin-top: 20px; font-size: 14px; color: #ffb84d; }
   </style>
   <script type="module">
-    // Import Firebase SDKs (compatíveis com 2025)
+    // ================================
+    // CONFIGURAÇÕES PRINCIPAIS
+    // ================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_PROJETO.firebaseapp.com",
-      projectId: "SEU_PROJETO",
-      storageBucket: "SEU_PROJETO.appspot.com",
-      messagingSenderId: "SEU_ID",
-      appId: "SUA_APP_ID"
-    };
+  apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
+  authDomain: "valakas-tracker.firebaseapp.com",
+  projectId: "valakas-tracker",
+  storageBucket: "valakas-tracker.firebasestorage.app",
+  messagingSenderId: "1073176685323",
+  appId: "1:1073176685323:web:621c3fb91d03053cad900e"
+};
 
-    const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const bossDoc = doc(db, "bosses", "valakas");
 
+    // Modo anti-spam: 1 = ativo / 0 = desativado
+    let antiSpamMode = 1;
+
+    // Tempo de respawn do Valakas (11 a 17 dias)
     const minRespawn = 11 * 24 * 60 * 60 * 1000;
     const maxRespawn = 17 * 24 * 60 * 60 * 1000;
 
+    // ================================
+    // FUNÇÃO: REGISTRAR MORTE
+    // ================================
     async function registerDeath() {
       const snap = await getDoc(bossDoc);
       const now = new Date();
 
-      if (snap.exists()) {
+      if (antiSpamMode === 1 && snap.exists()) {
         const nextSpawn = snap.data().nextSpawn.toDate();
         if (now < nextSpawn) {
-          alert("⚠️ Já há um registro ativo! Próximo spawn ainda não ocorreu.");
+          alert("⚠️ Anti-spam ativo: já existe um registro válido até o próximo spawn.");
           return;
         }
       }
@@ -54,13 +65,17 @@
       await setDoc(bossDoc, {
         lastDeath: now,
         nextSpawn: nextSpawn,
-        reporter: "Usuário manual"
+        reporter: "Usuário manual",
+        antiSpamActive: antiSpamMode
       });
 
       alert("✅ Morte registrada! Novo spawn entre 11 e 17 dias.");
       updateTimer();
     }
 
+    // ================================
+    // FUNÇÃO: ATUALIZAR CONTAGEM
+    // ================================
     async function updateTimer() {
       const snap = await getDoc(bossDoc);
       if (snap.exists()) {
@@ -79,19 +94,34 @@
             document.getElementById("timer").textContent = 
               `${days}d ${hours}h ${mins}m até possível respawn`;
           }
-        }, 60000); // atualiza a cada 1 min
+        }, 60000);
       } else {
         document.getElementById("timer").textContent = "Nenhum registro ainda.";
       }
+
+      document.getElementById("status").textContent =
+        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
+    }
+
+    // ================================
+    // FUNÇÃO: ALTERAR MODO ANTI-SPAM
+    // ================================
+    function toggleAntiSpam() {
+      antiSpamMode = antiSpamMode === 1 ? 0 : 1;
+      document.getElementById("status").textContent =
+        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
     }
 
     window.onload = updateTimer;
     window.registerDeath = registerDeath;
+    window.toggleAntiSpam = toggleAntiSpam;
   </script>
 </head>
 <body>
   <h1>🔥 Status Valakas</h1>
   <div id="timer" class="timer">Carregando...</div>
   <button onclick="registerDeath()">Registrar morte</button>
+  <button onclick="toggleAntiSpam()">Ativar/Desativar Anti-Spam</button>
+  <div id="status" class="status">Anti-spam: carregando...</div>
 </body>
 </html>
