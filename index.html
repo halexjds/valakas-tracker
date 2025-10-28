@@ -34,6 +34,15 @@
   button:hover {
     background: #ff6666;
   }
+  #muteBtn {
+    background: #333;
+    color: #eee;
+    margin-left: 10px;
+  }
+  #muteBtn.muted {
+    background: #555;
+    color: #ffcc00;
+  }
   #timer {
     font-size: 2em;
     margin-top: 30px;
@@ -56,6 +65,7 @@
   <input type="datetime-local" id="deathTime">
   <button onclick="startTimer()">Iniciar Contagem</button>
   <button onclick="resetTimer()">Limpar</button>
+  <button id="muteBtn" onclick="toggleMute()">🔊 Som Ligado</button> <!-- NOVO -->
 
   <div id="timer"></div>
   <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
@@ -67,15 +77,22 @@
 <script>
 let interval;
 const alarm = document.getElementById("alarmSound");
+const muteBtn = document.getElementById("muteBtn");
 
+// === Carregar preferências ===
 window.onload = function() {
   const saved = localStorage.getItem("valakasDeathTime");
+  const muted = localStorage.getItem("valakasMuted") === "true";
+
+  if (muted) setMuted(true);
+
   if (saved) {
     document.getElementById("deathTime").value = saved;
     startTimer();
   }
 };
 
+// === Função de iniciar o timer ===
 function startTimer() {
   clearInterval(interval);
   const deathInput = document.getElementById("deathTime").value;
@@ -94,8 +111,8 @@ function startTimer() {
     if (diff <= 0) {
       document.getElementById("timer").innerHTML =
         `🐉 <b>Valakas pode nascer a qualquer momento!</b><br><span class="alert">Janela até ${spawnMax.toLocaleTimeString()}</span>`;
-
-      if (alarm.paused) alarm.play();
+      
+      if (!alarm.muted && alarm.paused) alarm.play();
       return;
     }
 
@@ -107,10 +124,11 @@ function startTimer() {
       `⏳ Próximo spawn em: ${hours}h ${mins}m ${secs}s<br>` +
       `(Janela: ${spawnMin.toLocaleTimeString()} — ${spawnMax.toLocaleTimeString()})`;
 
-    if (diff < 15 * 60 * 1000 && alarm.paused) alarm.play();
+    if (diff < 15 * 60 * 1000 && !alarm.muted && alarm.paused) alarm.play();
   }, 1000);
 }
 
+// === Função de limpar ===
 function resetTimer() {
   clearInterval(interval);
   localStorage.removeItem("valakasDeathTime");
@@ -120,6 +138,25 @@ function resetTimer() {
   alarm.currentTime = 0;
 }
 
+// === Funções de som ===
+function toggleMute() {
+  const muted = !alarm.muted;
+  setMuted(muted);
+  localStorage.setItem("valakasMuted", muted);
+}
+
+function setMuted(muted) {
+  alarm.muted = muted;
+  if (muted) {
+    muteBtn.textContent = "🔇 Som Desligado";
+    muteBtn.classList.add("muted");
+  } else {
+    muteBtn.textContent = "🔊 Som Ligado";
+    muteBtn.classList.remove("muted");
+  }
+}
+
+// === Compartilhar link ===
 document.getElementById("shareLink").onclick = function(e) {
   e.preventDefault();
   const url = window.location.href.split("?")[0];
