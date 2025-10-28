@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Valakas Tracker Online</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Status Valakas</title>
+  <style>
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     text-align: center;
@@ -69,26 +68,12 @@
   }
 </style>
 
-</head>
-<body>
-  <h1>🔥 Valakas Tracker Online 🔥</h1>
+  <script type="module">
+    // Import Firebase SDKs (compatíveis com 2025)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  <div>
-    <button id="deathBtn">🐉 Valakas morto agora</button>
-    <button id="muteBtn">🔊 Som Ligado</button>
-  </div>
-
-  <div id="timer">Carregando...</div>
-  <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
-
-<script type="module">
-  // Import modular SDK (versão estável; ajuste se houver versão nova)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-  // ----- INSIRA AQUI SUA CONFIGURAÇÃO DO FIREBASE -----
-  const firebaseConfig = {
+    const firebaseConfig = {
   apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
   authDomain: "valakas-tracker.firebaseapp.com",
   projectId: "valakas-tracker",
@@ -96,118 +81,70 @@
   messagingSenderId: "1073176685323",
   appId: "1:1073176685323:web:621c3fb91d03053cad900e"
 };
-  // ---------------------------------------------------
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const bossDoc = doc(db, "bosses", "valakas");
 
-  // Autentica anonimamente (se ainda não autentica)
-  signInAnonymously(auth).catch((err) => {
-    console.error("Erro ao autenticar anonimamente:", err);
-    alert("Erro de autenticação Firebase. Veja console.");
-  });
+    const minRespawn = 11 * 24 * 60 * 60 * 1000;
+    const maxRespawn = 17 * 24 * 60 * 60 * 1000;
 
-  // Referência ao documento bosses/valakas
-  const docRef = doc(db, "bosses", "valakas");
-
-  // Elementos da UI
-  const deathBtn = document.getElementById("deathBtn");
-  const timerDiv = document.getElementById("timer");
-  const alarm = document.getElementById("alarmSound");
-  const muteBtn = document.getElementById("muteBtn");
-  let intervalId;
-
-  // Estado de mute persistido
-  const mutedSaved = localStorage.getItem("valakasMuted") === "true";
-  setMuted(mutedSaved);
-
-  // Quando o usuário clica "Valakas morto agora"
-  deathBtn.onclick = async () => {
-    // garante que esteja autenticado
-    if (!auth.currentUser) {
-      alert("Aguardando autenticação... tente novamente em 1–2s.");
-      return;
-    }
-    try {
-      // grava timestamp do servidor (coerente para todos)
-      await setDoc(docRef, { deathTime: serverTimestamp() }, { merge: true });
-    } catch (err) {
-      console.error("Erro ao gravar deathTime:", err);
-      alert("Erro ao enviar a hora. Veja console.");
-    }
-  };
-
-  // Ouve atualizações em tempo real no documento
-  onSnapshot(docRef, (snapshot) => {
-    if (!snapshot.exists()) {
-      timerDiv.textContent = "Nenhuma entrada ainda. Clique em 'Valakas morto agora' para registrar.";
-      return;
-    }
-    const data = snapshot.data();
-    const t = data.deathTime;
-    if (!t) {
-      timerDiv.textContent = "Registro presente, aguardando timestamp do servidor...";
-      return;
-    }
-    const deathTime = t.toDate(); // Timestamp -> Date
-    startTimer(deathTime);
-  }, (err) => {
-    console.error("onSnapshot erro:", err);
-    timerDiv.textContent = "Erro ao conectar ao Firestore. Veja console.";
-  });
-
-  // Inicia contador a partir do deathTime (mesma lógica: +11h / +17h)
-  function startTimer(deathTime) {
-    clearInterval(intervalId);
-    const spawnMin = new Date(deathTime.getTime() + 11 * 60 * 60 * 1000);
-    const spawnMax = new Date(deathTime.getTime() + 17 * 60 * 60 * 1000);
-
-    function tick() {
+    async function registerDeath() {
+      const snap = await getDoc(bossDoc);
       const now = new Date();
-      const diff = spawnMin - now;
-      if (diff <= 0) {
-        timerDiv.innerHTML = `🐉 <b>Valakas pode nascer a qualquer momento!</b><br><span style="color:#ffcc00">Janela até ${spawnMax.toLocaleTimeString()}</span>`;
-        if (!alarm.muted && alarm.paused) alarm.play();
-        return;
+
+      if (snap.exists()) {
+        const nextSpawn = snap.data().nextSpawn.toDate();
+        if (now < nextSpawn) {
+          alert("⚠️ Já há um registro ativo! Próximo spawn ainda não ocorreu.");
+          return;
+        }
       }
-      const h = Math.floor(diff / (1000*60*60));
-      const m = Math.floor((diff % (1000*60*60)) / (1000*60));
-      const s = Math.floor((diff % (1000*60)) / 1000);
-      timerDiv.innerHTML = `⏳ Próximo spawn em: ${h}h ${m}m ${s}s<br>(Janela: ${spawnMin.toLocaleTimeString()} — ${spawnMax.toLocaleTimeString()})`;
+
+      const respawnTime = minRespawn + Math.random() * (maxRespawn - minRespawn);
+      const nextSpawn = new Date(now.getTime() + respawnTime);
+
+      await setDoc(bossDoc, {
+        lastDeath: now,
+        nextSpawn: nextSpawn,
+        reporter: "Usuário manual"
+      });
+
+      alert("✅ Morte registrada! Novo spawn entre 11 e 17 dias.");
+      updateTimer();
     }
-    tick();
-    intervalId = setInterval(tick, 1000);
-  }
 
-  // Mute logic
-  muteBtn.onclick = () => {
-    const newMuted = !alarm.muted;
-    setMuted(newMuted);
-    localStorage.setItem("valakasMuted", newMuted);
-  };
+    async function updateTimer() {
+      const snap = await getDoc(bossDoc);
+      if (snap.exists()) {
+        const nextSpawn = snap.data().nextSpawn.toDate();
+        const interval = setInterval(() => {
+          const now = new Date();
+          const diff = nextSpawn - now;
 
-  function setMuted(muted) {
-    alarm.muted = muted;
-    if (muted) {
-      muteBtn.textContent = "🔇 Som Desligado";
-      muteBtn.classList.add("muted");
-    } else {
-      muteBtn.textContent = "🔊 Som Ligado";
-      muteBtn.classList.remove("muted");
+          if (diff <= 0) {
+            document.getElementById("timer").textContent = "🔥 Valakas pode estar vivo!";
+            clearInterval(interval);
+          } else {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mins = Math.floor((diff / (1000 * 60)) % 60);
+            document.getElementById("timer").textContent = 
+              `${days}d ${hours}h ${mins}m até possível respawn`;
+          }
+        }, 60000); // atualiza a cada 1 min
+      } else {
+        document.getElementById("timer").textContent = "Nenhum registro ainda.";
+      }
     }
-  }
 
-  // opcional: mostra quando o usuário está autenticado
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // user.uid disponível
-      console.log("Autenticado:", user.uid);
-    } else {
-      console.log("Usuário não autenticado.");
-    }
-  });
-
-</script>
+    window.onload = updateTimer;
+    window.registerDeath = registerDeath;
+  </script>
+</head>
+<body>
+  <h1>🔥 Status Valakas</h1>
+  <div id="timer" class="timer">Carregando...</div>
+  <button onclick="registerDeath()">Registrar morte</button>
 </body>
 </html>
