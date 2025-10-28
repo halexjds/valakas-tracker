@@ -134,9 +134,10 @@
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const mins = Math.floor((diff / (1000 * 60)) % 60);
-            timerEl.textContent = `${days}d ${hours}h ${mins}m até possível respawn`;
+            const secs = Math.floor((diff / 1000) % 60);
+            timerEl.textContent = `${days}d ${hours}h ${mins}m ${secs}s até possível respawn`;
           }
-        }, 60000);
+        }, 1000);
 
         // Mostra fuso horário atual
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -174,7 +175,7 @@
       return new Intl.DateTimeFormat("pt-BR", {
         timeZone: tz,
         dateStyle: "short",
-        timeStyle: "short"
+        timeStyle: "medium"
       }).format(date);
     }
 
