@@ -12,11 +12,46 @@
       text-align: center;
       padding-top: 50px;
     }
-    .timer { font-size: 2em; margin: 20px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
-    .status { margin-top: 20px; font-size: 14px; color: #ffb84d; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 5px 0; }
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 2px 2px 6px #000;
+    }
+    .timer { 
+      font-size: 2em; 
+      margin: 20px; 
+    }
+    button { 
+      padding: 10px 20px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      margin: 10px; 
+      border-radius: 8px;
+      border: none;
+      background: #b30000;
+      color: #fff;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #ff3333;
+      transform: scale(1.05);
+    }
+    .status { 
+      margin-top: 20px; 
+      font-size: 14px; 
+      color: #ffb84d; 
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px auto;
+      width: fit-content;
+      text-align: left;
+    }
+    li {
+      margin: 5px 0;
+      font-size: 15px;
+      text-shadow: 1px 1px 3px #000;
+    }
   </style>
 
   <script type="module">
@@ -121,7 +156,7 @@
         ];
 
         listaFusosEl.innerHTML = fusos.map(f =>
-          `<li>${f.replace("_", " ")} → ${formatDate(nextSpawn, f)}</li>`
+          `<li>🐉 ${f.replace("_", " ")} → ${formatDate(nextSpawn, f)}</li>`
         ).join("");
 
       } else {
@@ -148,7 +183,7 @@
   </script>
 </head>
 <body>
-  <h1>🔥 Status Valakas</h1>
+  <h1>🔥 Status Valakas 🔥</h1>
   <div id="timer" class="timer">Carregando...</div>
   <button onclick="registerDeath()">Registrar morte</button>
   <div id="status" class="status">Anti-spam: carregando...</div>
