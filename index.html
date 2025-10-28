@@ -8,17 +8,67 @@
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     text-align: center;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('valakas.jpg') no-repeat center center fixed;
+    background: url('valakas.png') no-repeat center center fixed;
     background-size: cover;
     color: #eee;
     margin: 0; padding: 30px;
   }
-  h1 { color:#ff4d4d; text-shadow:0 0 10px #ff0000aa; }
-  button { padding:10px 14px; margin:8px; border:none; border-radius:8px; cursor:pointer; background:#ff4d4d; color:#fff; font-weight:bold; }
-  #muteBtn { background:#333; color:#eee; }
-  #muteBtn.muted { background:#555; color:#ffcc00; }
-  #timer { font-size:2em; margin-top:25px; padding:12px; background: rgba(0,0,0,0.4); border-radius:10px; display:inline-block; }
+  h1 {
+    color: #ff4d4d;
+    text-shadow: 0 0 15px #ff0000aa;
+    background: rgba(0,0,0,0.5);
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 12px;
+  }
+  #timer, label, footer, input, button {
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+  }
+  input, button {
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    font-size: 1em;
+    color: #fff;
+  }
+  button {
+    background: #ff4d4d;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover {
+    background: #ff6666;
+  }
+  #muteBtn {
+    background: #333;
+    color: #eee;
+    margin-left: 10px;
+  }
+  #muteBtn.muted {
+    background: #555;
+    color: #ffcc00;
+  }
+  #timer {
+    font-size: 2em;
+    margin-top: 30px;
+    padding: 15px;
+  }
+  .alert {
+    color: #ffcc00;
+    font-weight: bold;
+  }
+  footer {
+    margin-top: 60px;
+    font-size: 0.9em;
+    color: #ccc;
+    background: rgba(0,0,0,0.4);
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 10px;
+  }
 </style>
+
 </head>
 <body>
   <h1>🔥 Valakas Tracker Online 🔥</h1>
