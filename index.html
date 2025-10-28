@@ -37,10 +37,16 @@ const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const bossDoc = doc(db, "bosses", "valakas");
 
-    // Modo anti-spam: 1 = ativo / 0 = desativado
-    let antiSpamMode = 1;
+    // ================================
+    // MODO ANTI-SPAM
+    // ================================
+    // 1 = ativo (bloqueia novos registros até o próximo respawn)
+    // 0 = desativado (permite registrar sempre)
+    const antiSpamMode = 1;
 
-    // Tempo de respawn do Valakas (11 a 17 dias)
+    // ================================
+    // TEMPO DE RESPAWN DO VALAKAS
+    // ================================
     const minRespawn = 11 * 24 * 60 * 60 * 1000;
     const maxRespawn = 17 * 24 * 60 * 60 * 1000;
 
@@ -51,10 +57,11 @@ const app = initializeApp(firebaseConfig);
       const snap = await getDoc(bossDoc);
       const now = new Date();
 
+      // Anti-spam: só permite novo registro se o tempo passou
       if (antiSpamMode === 1 && snap.exists()) {
         const nextSpawn = snap.data().nextSpawn.toDate();
         if (now < nextSpawn) {
-          alert("⚠️ Anti-spam ativo: já existe um registro válido até o próximo spawn.");
+          alert("⚠️ Anti-spam ativo: já há um registro válido até o próximo spawn.");
           return;
         }
       }
@@ -91,7 +98,7 @@ const app = initializeApp(firebaseConfig);
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const mins = Math.floor((diff / (1000 * 60)) % 60);
-            document.getElementById("timer").textContent = 
+            document.getElementById("timer").textContent =
               `${days}d ${hours}h ${mins}m até possível respawn`;
           }
         }, 60000);
@@ -103,25 +110,14 @@ const app = initializeApp(firebaseConfig);
         `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
     }
 
-    // ================================
-    // FUNÇÃO: ALTERAR MODO ANTI-SPAM
-    // ================================
-    function toggleAntiSpam() {
-      antiSpamMode = antiSpamMode === 1 ? 0 : 1;
-      document.getElementById("status").textContent =
-        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
-    }
-
     window.onload = updateTimer;
     window.registerDeath = registerDeath;
-    window.toggleAntiSpam = toggleAntiSpam;
   </script>
 </head>
 <body>
   <h1>🔥 Status Valakas</h1>
   <div id="timer" class="timer">Carregando...</div>
   <button onclick="registerDeath()">Registrar morte</button>
-  <button onclick="toggleAntiSpam()">Ativar/Desativar Anti-Spam</button>
   <div id="status" class="status">Anti-spam: carregando...</div>
 </body>
 </html>
