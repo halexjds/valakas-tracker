@@ -15,14 +15,17 @@
     .timer { font-size: 2em; margin: 20px; }
     button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
     .status { margin-top: 20px; font-size: 14px; color: #ffb84d; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 5px 0; }
   </style>
+
   <script type="module">
-    // ================================
-    // CONFIGURAÇÕES PRINCIPAIS
-    // ================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+    // ================================
+    // CONFIGURAÇÃO FIREBASE
+    // ================================
     const firebaseConfig = {
       apiKey: "AIzaSyCRh9VfLtflFK69QaAyxWrS9opktAn7Vo8",
       authDomain: "valakas-tracker.firebaseapp.com",
@@ -37,26 +40,19 @@
     const bossDoc = doc(db, "bosses", "valakas");
 
     // ================================
-    // MODO ANTI-SPAM
+    // CONFIGURAÇÕES DO RESPAWN
     // ================================
-    // 1 = ativo (bloqueia novos registros até o próximo respawn)
-    // 0 = desativado (permite registrar sempre)
-    const antiSpamMode = 1;
-
-    // ================================
-    // TEMPO DE RESPAWN DO VALAKAS
-    // ================================
+    const antiSpamMode = 0; // 1 = ativo, 0 = desativado
     const minRespawn = 11 * 24 * 60 * 60 * 1000;
     const maxRespawn = 17 * 24 * 60 * 60 * 1000;
 
     // ================================
-    // FUNÇÃO: REGISTRAR MORTE
+    // REGISTRAR MORTE
     // ================================
     async function registerDeath() {
       const snap = await getDoc(bossDoc);
       const now = new Date();
 
-      // Anti-spam: só permite novo registro se o tempo passou
       if (antiSpamMode === 1 && snap.exists()) {
         const nextSpawn = snap.data().nextSpawn.toDate();
         if (now < nextSpawn) {
@@ -80,33 +76,71 @@
     }
 
     // ================================
-    // FUNÇÃO: ATUALIZAR CONTAGEM
+    // ATUALIZAR CONTAGEM E FUSO
     // ================================
     async function updateTimer() {
       const snap = await getDoc(bossDoc);
+      const timerEl = document.getElementById("timer");
+      const fusoEl = document.getElementById("fusoAtual");
+      const listaFusosEl = document.getElementById("listaFusos");
+
       if (snap.exists()) {
         const nextSpawn = snap.data().nextSpawn.toDate();
+
+        // Atualiza contador
         const interval = setInterval(() => {
           const now = new Date();
           const diff = nextSpawn - now;
 
           if (diff <= 0) {
-            document.getElementById("timer").textContent = "🔥 Valakas pode estar vivo!";
+            timerEl.textContent = "🔥 Valakas pode estar vivo!";
             clearInterval(interval);
           } else {
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const mins = Math.floor((diff / (1000 * 60)) % 60);
-            document.getElementById("timer").textContent =
-              `${days}d ${hours}h ${mins}m até possível respawn`;
+            timerEl.textContent = `${days}d ${hours}h ${mins}m até possível respawn`;
           }
         }, 60000);
+
+        // Mostra fuso horário atual
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        fusoEl.textContent = `🕓 Fuso horário local: ${timezone} (${formatDate(nextSpawn, timezone)})`;
+
+        // Lista de fusos equivalentes
+        const fusos = [
+          "America/Sao_Paulo",
+          "America/New_York",
+          "Europe/London",
+          "Europe/Paris",
+          "Europe/Moscow",
+          "Asia/Seoul",
+          "Asia/Tokyo",
+          "Asia/Shanghai",
+          "Australia/Sydney"
+        ];
+
+        listaFusosEl.innerHTML = fusos.map(f =>
+          `<li>${f.replace("_", " ")} → ${formatDate(nextSpawn, f)}</li>`
+        ).join("");
+
       } else {
-        document.getElementById("timer").textContent = "Nenhum registro ainda.";
+        timerEl.textContent = "Nenhum registro ainda.";
       }
 
       document.getElementById("status").textContent =
         `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
+    }
+
+    // ================================
+    // FUNÇÃO AUXILIAR: FORMATAR DATA POR FUSO
+    // ================================
+    function formatDate(date, tz) {
+      return new Intl.DateTimeFormat("pt-BR", {
+        timeZone: tz,
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(date);
     }
 
     window.onload = updateTimer;
@@ -118,5 +152,9 @@
   <div id="timer" class="timer">Carregando...</div>
   <button onclick="registerDeath()">Registrar morte</button>
   <div id="status" class="status">Anti-spam: carregando...</div>
+
+  <h3 id="fusoAtual"></h3>
+  <h3>⏰ Horários equivalentes de spawn:</h3>
+  <ul id="listaFusos"></ul>
 </body>
 </html>
