@@ -111,7 +111,7 @@
     }
 
     // ================================
-    // ATUALIZAR CONTAGEM E FUSO
+    // ATUALIZAR CONTAGEM E FUSOS
     // ================================
     async function updateTimer() {
       const snap = await getDoc(bossDoc);
@@ -119,70 +119,68 @@
       const fusoEl = document.getElementById("fusoAtual");
       const listaFusosEl = document.getElementById("listaFusos");
 
-      if (snap.exists()) {
-        const nextSpawn = snap.data().nextSpawn.toDate();
+      if (!snap.exists()) {
+        timerEl.textContent = "Nenhum registro ainda.";
+        return;
+      }
 
-        // Atualiza contador
-        const interval = setInterval(() => {
-          const now = new Date();
-          const diff = nextSpawn - now;
+      const nextSpawn = snap.data().nextSpawn.toDate();
 
-          if (diff <= 0) {
-            timerEl.textContent = "🔥 Valakas pode estar vivo!";
-            clearInterval(interval);
-          } else {
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const mins = Math.floor((diff / (1000 * 60)) % 60);
-            const secs = Math.floor((diff / 1000) % 60);
-            timerEl.textContent = `${days}d ${hours}h ${mins}m ${secs}s até possível respawn`;
-          }
-        }, 1000);
+      // Atualiza contador principal
+      const interval = setInterval(() => {
+        const now = new Date();
+        const diff = nextSpawn - now;
 
-        // Mostra fuso horário atual
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        fusoEl.textContent = `🕓 Fuso horário local: ${timezone} (${formatDate(nextSpawn, timezone)})`;
+        if (diff <= 0) {
+          timerEl.textContent = "🔥 Valakas pode estar vivo!";
+          clearInterval(interval);
+        } else {
+          const { days, hours, mins, secs } = timeDiff(diff);
+          timerEl.textContent = `${days}d ${hours}h ${mins}m ${secs}s até possível respawn`;
+        }
 
-        // Lista de fusos que será exibida na interface
-const fusos = [
-  "America/Sao_Paulo",
-  "America/New_York",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Moscow",
-  "Asia/Seoul",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Australia/Sydney"
-];
+        // Atualiza fusos com contagem regressiva dinâmica
+        const fusos = [
+          "America/Sao_Paulo",
+          "America/New_York",
+          "Europe/London",
+          "Europe/Paris",
+          "Europe/Moscow",
+          "Asia/Seoul",
+          "Asia/Tokyo",
+          "Asia/Shanghai",
+          "Australia/Sydney"
+        ];
 
-// Atualiza os horários equivalentes em cada fuso
-const listaFusosEl = document.getElementById("listaFusos");
-setInterval(() => {
-  const now = new Date();
+        listaFusosEl.innerHTML = fusos.map(f => {
+          const fusoDate = new Date(nextSpawn.toLocaleString("en-US", { timeZone: f }));
+          const fusoDiff = fusoDate - new Date();
+          const { days, hours, mins, secs } = timeDiff(fusoDiff);
+          return `<li>🐉 ${f.replace("_", " ")} → ${days}d ${hours}h ${mins}m ${secs}s restantes (${formatDate(nextSpawn, f)})</li>`;
+        }).join("");
 
-  listaFusosEl.innerHTML = fusos.map(f => {
-    const fusoDate = new Date(nextSpawn.toLocaleString("en-US", { timeZone: f }));
-    const diff = fusoDate - now;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const mins = Math.floor((diff / (1000 * 60)) % 60);
-    const secs = Math.floor((diff / 1000) % 60);
+      }, 1000);
 
-    const formattedDate = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: f,
-      dateStyle: "short",
-      timeStyle: "medium"
-    }).format(nextSpawn);
+      // Fuso local
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      fusoEl.textContent = `🕓 Fuso horário local: ${timezone}`;
 
-    return `<li>🐉 ${f.replace("_", " ")} → ${days}d ${hours}h ${mins}m ${secs}s restantes (${formattedDate})</li>`;
-  }).join("");
-}, 1000);
-
+      document.getElementById("status").textContent =
+        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
+    }
 
     // ================================
-    // FUNÇÃO AUXILIAR: FORMATAR DATA POR FUSO
+    // FUNÇÕES AUXILIARES
     // ================================
+    function timeDiff(diff) {
+      return {
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        mins: Math.floor((diff / (1000 * 60)) % 60),
+        secs: Math.floor((diff / 1000) % 60)
+      };
+    }
+
     function formatDate(date, tz) {
       return new Intl.DateTimeFormat("pt-BR", {
         timeZone: tz,
@@ -196,7 +194,7 @@ setInterval(() => {
   </script>
 </head>
 <body>
-  <h1>🔥 Status Valakas 🔥</h1>
+  <h1>🎮🔥 Status Valakas 🔥🎮</h1>
   <div id="timer" class="timer">Carregando...</div>
   <button onclick="registerDeath()">Registrar morte</button>
   <div id="status" class="status">Anti-spam: carregando...</div>
