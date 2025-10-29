@@ -111,64 +111,85 @@
     }
 
     // ================================
-    // ATUALIZAR CONTAGEM E FUSOS
-    // ================================
-    async function updateTimer() {
-      const snap = await getDoc(bossDoc);
-      const timerEl = document.getElementById("timer");
-      const fusoEl = document.getElementById("fusoAtual");
-      const listaFusosEl = document.getElementById("listaFusos");
+// ATUALIZAR CONTAGEM E FUSOS (JANELAS DUPLAS)
+// ================================
+async function updateTimer() {
+  const snap = await getDoc(bossDoc);
+  const timerEl = document.getElementById("timer");
+  const fusoEl = document.getElementById("fusoAtual");
+  const listaFusosEl = document.getElementById("listaFusos");
 
-      if (!snap.exists()) {
-        timerEl.textContent = "Nenhum registro ainda.";
-        return;
-      }
+  if (!snap.exists()) {
+    timerEl.textContent = "Nenhum registro ainda.";
+    return;
+  }
 
-      const nextSpawn = snap.data().nextSpawn.toDate();
+  const data = snap.data();
+  const lastDeath = data.lastDeath.toDate();
+  const spawnMin = new Date(lastDeath.getTime() + minRespawn);
+  const spawnMax = new Date(lastDeath.getTime() + maxRespawn);
 
-      // Atualiza fusos com contagem regressiva dinâmica
-const fusos = [
-  "America/Sao_Paulo",
-  "America/New_York",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Moscow",
-  "Asia/Seoul",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Australia/Sydney"
-];
-      
-      // Atualiza contador principal
-      const interval = setInterval(() => {
-        const now = new Date();
-        const diff = nextSpawn - now;
+  // Lista fixa de fusos
+  const fusos = [
+    "America/Sao_Paulo",
+    "America/New_York",
+    "Europe/London",
+    "Europe/Paris",
+    "Europe/Moscow",
+    "Asia/Seoul",
+    "Asia/Tokyo",
+    "Asia/Shanghai",
+    "Australia/Sydney"
+  ];
 
-        if (diff <= 0) {
-          timerEl.textContent = "🔥 Valakas pode estar vivo!";
-          clearInterval(interval);
-        } else {
-          const { days, hours, mins, secs } = timeDiff(diff);
-          timerEl.textContent = `${days}d ${hours}h ${mins}m ${secs}s até possível respawn`;
-        }
+  // Atualiza contador principal e fusos
+  const interval = setInterval(() => {
+    const now = new Date();
+    const diffMin = spawnMin - now;
+    const diffMax = spawnMax - now;
 
-    
-        listaFusosEl.innerHTML = fusos.map(f => {
-          const fusoDate = new Date(nextSpawn.toLocaleString("en-US", { timeZone: f }));
-          const fusoDiff = fusoDate - new Date();
-          const { days, hours, mins, secs } = timeDiff(fusoDiff);
-          return `<li>🐉 ${f.replace("_", " ")} → ${days}d ${hours}h ${mins}m ${secs}s restantes (${formatDate(nextSpawn, f)})</li>`;
-        }).join("");
-
-      }, 1000);
-
-      // Fuso local
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      fusoEl.textContent = `🕓 Fuso horário local: ${timezone}`;
-
-      document.getElementById("status").textContent =
-        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
+    if (diffMax <= 0) {
+      timerEl.innerHTML = "🔥 Valakas pode estar vivo!";
+      clearInterval(interval);
+      return;
     }
+
+    // Mostra as duas janelas
+    const { days: dMin, hours: hMin, mins: mMin, secs: sMin } = timeDiff(diffMin);
+    const { days: dMax, hours: hMax, mins: mMax, secs: sMax } = timeDiff(diffMax);
+
+    timerEl.innerHTML = `
+      🔺 <b>Janela Máxima (17d):</b> ${dMax}d ${hMax}h ${mMax}m ${sMax}s<br>
+      🔻 <b>Janela Mínima (11d):</b> ${dMin}d ${hMin}h ${mMin}m ${sMin}s
+    `;
+
+    // Atualiza lista de fusos
+    listaFusosEl.innerHTML = fusos.map(f => {
+      const fusoDateMin = new Date(spawnMin.toLocaleString("en-US", { timeZone: f }));
+      const fusoDateMax = new Date(spawnMax.toLocaleString("en-US", { timeZone: f }));
+
+      const diffMinFuso = fusoDateMin - now;
+      const diffMaxFuso = fusoDateMax - now;
+
+      const { days: dMinF, hours: hMinF, mins: mMinF, secs: sMinF } = timeDiff(diffMinFuso);
+      const { days: dMaxF, hours: hMaxF, mins: mMaxF, secs: sMaxF } = timeDiff(diffMaxFuso);
+
+      return `
+        <li>
+          🐉 <b>${f.replace("_", " ")}</b><br>
+          🔺 Máx: ${dMaxF}d ${hMaxF}h ${mMaxF}m ${sMaxF}s restantes<br>
+          🔻 Mín: ${dMinF}d ${hMinF}h ${mMinF}m ${sMinF}s restantes
+        </li>`;
+    }).join("");
+  }, 1000);
+
+  // Fuso local
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  fusoEl.textContent = `🕓 Fuso horário local: ${timezone}`;
+
+  document.getElementById("status").textContent =
+    `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
+}
 
     // ================================
     // FUNÇÕES AUXILIARES
