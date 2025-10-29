@@ -143,30 +143,42 @@
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         fusoEl.textContent = `🕓 Fuso horário local: ${timezone} (${formatDate(nextSpawn, timezone)})`;
 
-        // Lista de fusos equivalentes
-        const fusos = [
-          "America/Sao_Paulo",
-          "America/New_York",
-          "Europe/London",
-          "Europe/Paris",
-          "Europe/Moscow",
-          "Asia/Seoul",
-          "Asia/Tokyo",
-          "Asia/Shanghai",
-          "Australia/Sydney"
-        ];
+        // Lista de fusos que será exibida na interface
+const fusos = [
+  "America/Sao_Paulo",
+  "America/New_York",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Moscow",
+  "Asia/Seoul",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Australia/Sydney"
+];
 
-        listaFusosEl.innerHTML = fusos.map(f =>
-          `<li>🐉 ${f.replace("_", " ")} → ${formatDate(nextSpawn, f)}</li>`
-        ).join("");
+// Atualiza os horários equivalentes em cada fuso
+const listaFusosEl = document.getElementById("listaFusos");
+setInterval(() => {
+  const now = new Date();
 
-      } else {
-        timerEl.textContent = "Nenhum registro ainda.";
-      }
+  listaFusosEl.innerHTML = fusos.map(f => {
+    const fusoDate = new Date(nextSpawn.toLocaleString("en-US", { timeZone: f }));
+    const diff = fusoDate - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diff / (1000 * 60)) % 60);
+    const secs = Math.floor((diff / 1000) % 60);
 
-      document.getElementById("status").textContent =
-        `Anti-spam: ${antiSpamMode === 1 ? "🟢 Ativado" : "🔴 Desativado"}`;
-    }
+    const formattedDate = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: f,
+      dateStyle: "short",
+      timeStyle: "medium"
+    }).format(nextSpawn);
+
+    return `<li>🐉 ${f.replace("_", " ")} → ${days}d ${hours}h ${mins}m ${secs}s restantes (${formattedDate})</li>`;
+  }).join("");
+}, 1000);
+
 
     // ================================
     // FUNÇÃO AUXILIAR: FORMATAR DATA POR FUSO
