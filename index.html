@@ -111,7 +111,7 @@
     }
 
     // ================================
-// ATUALIZAR CONTAGEM E FUSOS (JANELAS DUPLAS)
+// ATUALIZAR CONTAGEM E FUSOS (JANELAS DUPLAS + DATAS LOCAIS)
 // ================================
 async function updateTimer() {
   const snap = await getDoc(bossDoc);
@@ -129,7 +129,6 @@ async function updateTimer() {
   const spawnMin = new Date(lastDeath.getTime() + minRespawn);
   const spawnMax = new Date(lastDeath.getTime() + maxRespawn);
 
-  // Lista fixa de fusos
   const fusos = [
     "America/Sao_Paulo",
     "America/New_York",
@@ -142,7 +141,6 @@ async function updateTimer() {
     "Australia/Sydney"
   ];
 
-  // Atualiza contador principal e fusos
   const interval = setInterval(() => {
     const now = new Date();
     const diffMin = spawnMin - now;
@@ -154,7 +152,6 @@ async function updateTimer() {
       return;
     }
 
-    // Mostra as duas janelas
     const { days: dMin, hours: hMin, mins: mMin, secs: sMin } = timeDiff(diffMin);
     const { days: dMax, hours: hMax, mins: mMax, secs: sMax } = timeDiff(diffMax);
 
@@ -163,8 +160,29 @@ async function updateTimer() {
       🔻 <b>Janela Mínima (11d):</b> ${dMin}d ${hMin}h ${mMin}m ${sMin}s
     `;
 
-    // Atualiza lista de fusos
     listaFusosEl.innerHTML = fusos.map(f => {
+      // Datas locais de spawn
+      const localSpawnMin = spawnMin.toLocaleString("pt-BR", {
+        timeZone: f,
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      const localSpawnMax = spawnMax.toLocaleString("pt-BR", {
+        timeZone: f,
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      // Contagens regressivas para cada fuso
       const fusoDateMin = new Date(spawnMin.toLocaleString("en-US", { timeZone: f }));
       const fusoDateMax = new Date(spawnMax.toLocaleString("en-US", { timeZone: f }));
 
@@ -175,15 +193,14 @@ async function updateTimer() {
       const { days: dMaxF, hours: hMaxF, mins: mMaxF, secs: sMaxF } = timeDiff(diffMaxFuso);
 
       return `
-        <li>
+        <li style="text-align: left; margin-bottom: 8px;">
           🐉 <b>${f.replace("_", " ")}</b><br>
-          🔺 Máx: ${dMaxF}d ${hMaxF}h ${mMaxF}m ${sMaxF}s restantes<br>
-          🔻 Mín: ${dMinF}d ${hMinF}h ${mMinF}m ${sMinF}s restantes
+          🔺 Máx: ${localSpawnMax} — em ${dMaxF}d ${hMaxF}h ${mMaxF}m ${sMaxF}s<br>
+          🔻 Mín: ${localSpawnMin} — em ${dMinF}d ${hMinF}h ${mMinF}m ${sMinF}s
         </li>`;
     }).join("");
   }, 1000);
 
-  // Fuso local
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   fusoEl.textContent = `🕓 Fuso horário local: ${timezone}`;
 
