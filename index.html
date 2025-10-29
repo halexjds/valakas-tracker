@@ -126,6 +126,19 @@
 
       const nextSpawn = snap.data().nextSpawn.toDate();
 
+      // Atualiza fusos com contagem regressiva dinâmica
+const fusos = [
+  "America/Sao_Paulo",
+  "America/New_York",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Moscow",
+  "Asia/Seoul",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Australia/Sydney"
+];
+      
       // Atualiza contador principal
       const interval = setInterval(() => {
         const now = new Date();
@@ -139,19 +152,7 @@
           timerEl.textContent = `${days}d ${hours}h ${mins}m ${secs}s até possível respawn`;
         }
 
-        // Atualiza fusos com contagem regressiva dinâmica
-        const fusos = [
-          "America/Sao_Paulo",
-          "America/New_York",
-          "Europe/London",
-          "Europe/Paris",
-          "Europe/Moscow",
-          "Asia/Seoul",
-          "Asia/Tokyo",
-          "Asia/Shanghai",
-          "Australia/Sydney"
-        ];
-
+    
         listaFusosEl.innerHTML = fusos.map(f => {
           const fusoDate = new Date(nextSpawn.toLocaleString("en-US", { timeZone: f }));
           const fusoDiff = fusoDate - new Date();
